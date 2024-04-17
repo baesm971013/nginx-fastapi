@@ -1,0 +1,46 @@
+version : '3.0'
+services:
+    nginx:
+      container_name: nginx_build
+      build: ./nginx
+      ports:
+        - "80:80"
+      restart: always
+      volumes:
+        - ./app:/app
+      depends_on:
+        - fastapi
+      networks:
+        - app-net
+    
+    fastapi:
+      build:
+        context: ./app
+        dockerfile: Dockerfile
+      container_name: fastapi-build
+      #command: gunicorn -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000
+      #command: python3 main.py
+      restart: always
+      volumes:
+        - ./app:/app
+      expose:
+        - "8000"
+      ports:
+        - "8000:8000"
+      networks:
+        - app-net
+    
+    redis:
+      image: redis
+      command: redis-server --requirepass changeme --port 6379
+      restart: always
+      expose:
+        - "6379"
+      ports:
+        - "6379:6379"
+      networks:
+        - app-net
+
+networks:
+  app-net:
+    driver: bridge
